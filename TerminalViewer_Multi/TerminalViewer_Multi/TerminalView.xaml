@@ -1,0 +1,167 @@
+﻿<Page x:Class="TerminalViewer.TerminalView"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+      mc:Ignorable="d" 
+        xmlns:local="clr-namespace:TerminalViewer"
+      xmlns:diag="clr-namespace:System.Diagnostics;assembly=WindowsBase"
+	Title="TerminalView" Height="1080" Width="1920">
+    <Page.Resources>
+        <local:DebugConverter x:Key="debugConverter" />
+        <local:BlockModel x:Key="blockModel" />
+    </Page.Resources>
+    <Grid>
+        <ItemsControl x:Name="testItems" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+            <ItemsControl.RenderTransform>
+                <MatrixTransform />
+            </ItemsControl.RenderTransform>
+            <ItemsControl.ItemsPanel >
+                <ItemsPanelTemplate>
+                    <Canvas ForceCursor="True" Cursor="{Binding ActualCursor}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" IsItemsHost="True"  Background="AliceBlue" x:Name="MapCanvas" MouseUp="OnMouseUp" MouseDown="OnMouseDown" MouseMove="OnMouseMove" MouseWheel="OnScroll" >
+                        
+                    </Canvas>
+                </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.Resources>
+                <DataTemplate DataType="{x:Type local:Block}">
+                    <StackPanel>
+                        <Polygon x:Name="polyBlock" DataContext="{Binding}" Points="{Binding Points}"
+                            Stroke="{Binding Stroke}" 
+                            StrokeThickness="{Binding StrokeThickness}"
+                            MouseEnter="Block_MouseEnter" 
+                            MouseDown="Block_Click">
+                            <Polygon.ToolTip>
+                                <StackPanel>
+                                    <TextBlock FontWeight="Bold" Text="{Binding Name}"/>
+                                    <TextBlock>
+                                        <Run Text="Nombre de Travées : " />
+                                        <Run Text="{Binding nbTravees, TargetNullValue='9999'}" />
+                                    </TextBlock>
+                                    <TextBlock>
+                                        <Run Text="Nombre de Slots par travée : " />
+                                        <Run Text="{Binding nbSlots, TargetNullValue='9999'}" />
+                                    </TextBlock>
+                                </StackPanel>
+                            </Polygon.ToolTip>
+                            <Polygon.ContextMenu>
+                                <ContextMenu>
+                                    <MenuItem Header="Supprimer le block" Click="BlockDelete_Click" CommandParameter="{Binding RelativeSource={RelativeSource Self}, Path=Parent}" HorizontalAlignment="Left" VerticalAlignment="Center">
+                                        <MenuItem.Style>
+                                            <Style TargetType="{x:Type MenuItem}">
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding Path=isTemporary}"  Value="False">
+                                                        <Setter Property="IsEnabled" Value="False" />
+                                                    </DataTrigger>
+                                                    <DataTrigger Binding="{Binding Path=isTemporary}"  Value="True">
+                                                        <Setter Property="IsEnabled" Value="True" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </MenuItem.Style>
+                                    </MenuItem>
+                                    <MenuItem Header="Selectionner" Click="PolygonSelect_Click" CommandParameter="{Binding RelativeSource={RelativeSource Self}, Path=Parent}" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                                    <MenuItem Header="Propriétés" Click="PolygonProperties_Click" CommandParameter="{Binding RelativeSource={RelativeSource Self}, Path=Parent}" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                                </ContextMenu>
+                            </Polygon.ContextMenu>
+                            <Polygon.Style>
+                                <Style TargetType="{x:Type Polygon}">
+                                    <Setter Property="Fill" Value="LightGreen"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding Path=isTemporary}"  Value="True">
+                                            <Setter Property="Fill" Value="Green" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                                
+                            </Polygon.Style>
+                        </Polygon>
+                        <!--<ItemsControl ItemsSource="{Binding Points}">
+                            <ItemsControl.ItemContainerStyle>
+                                <Style TargetType="FrameworkElement">
+                                    <Setter Property="Canvas.Left" Value="{Binding X}" />
+                                    <Setter Property="Canvas.Top" Value="{Binding Y}" />
+                                </Style>
+                            </ItemsControl.ItemContainerStyle>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate DataType="Point">
+                                    <Ellipse Fill="Blue"
+                                        Width="8"
+                                        Height="8"
+                                        Margin="-4,-4,4,4" />
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <Canvas IsItemsHost="True" />
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                        </ItemsControl>-->
+                    </StackPanel>
+                </DataTemplate>
+                <DataTemplate DataType="{x:Type local:Slot}">
+                    <Polygon Points="{Binding Points}"
+                        StrokeThickness="0.3"
+                        Fill="{Binding Fill}"
+                        Stroke="{Binding Stroke}">
+                        <Polygon.ToolTip>
+                            <TextBlock FontWeight="Bold" Text="{Binding slotname}"/>
+                        </Polygon.ToolTip>
+                        <Polygon.ContextMenu>
+                            <ContextMenu>
+                                <MenuItem Header="Propriétés du block" Click="SlotProperties_Click" CommandParameter="{Binding RelativeSource={RelativeSource Self}, Path=Parent}" HorizontalAlignment="Left" VerticalAlignment="Center" />
+                            </ContextMenu>
+                        </Polygon.ContextMenu>
+                    </Polygon>
+                </DataTemplate>
+                <DataTemplate DataType="{x:Type local:GPSPoint}">
+                    <StackPanel>
+                        <Path x:Name="GPSPoint" StrokeThickness="0.3" Fill="Red" >
+                            <Path.Data>
+                                <EllipseGeometry Center="{Binding Path=CenterPoint}"
+                                             RadiusX="0.5"
+                                             RadiusY="0.5" />
+                            </Path.Data>
+                            <Path.ToolTip>
+                                <StackPanel>
+                                    <TextBlock FontWeight="Bold" Text="{Binding Name}"/>
+                                    <TextBlock>
+                                    <Run Text="Latitude : " />
+                                    <Run Text="{Binding Latitude, TargetNullValue='9999'}" />
+                                    </TextBlock>
+                                    <TextBlock>
+                                    <Run Text="Longitude : " />
+                                    <Run Text="{Binding Longitude, TargetNullValue='9999'}" />
+                                    </TextBlock>
+                                </StackPanel>
+                            </Path.ToolTip>
+                            <Path.ContextMenu>
+                                <ContextMenu>
+                                    <MenuItem Header="Enregistrer Position" Click="GPSPointSavePos_Click" CommandParameter="{Binding RelativeSource={RelativeSource Self}, Path=Parent}" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                                </ContextMenu>
+                            </Path.ContextMenu>
+                        </Path>
+                        
+                    </StackPanel>
+                </DataTemplate>
+                <DataTemplate DataType="{x:Type local:ActionPoint}">
+                    <StackPanel>
+                        <Path x:Name="actionpoint" Fill="Red" >
+                            <Path.Data>
+                                <EllipseGeometry Center="{Binding Path=Position, Converter={StaticResource debugConverter}}"
+                                             RadiusX="0.3"
+                                             RadiusY="0.3" />
+                            </Path.Data>
+                            <Path.ToolTip>
+                                <StackPanel>
+                                    <TextBlock FontWeight="Bold" Text="{Binding Event}"/>
+                                </StackPanel>
+                            </Path.ToolTip>
+                        </Path>
+                        <!--<TextBlock Text="{Binding Name}" FontSize="8" Canvas.Left="{Binding CenterPoint.X}" Canvas.Bottom="{Binding CenterPoint.Y}" />-->
+                    </StackPanel>
+                </DataTemplate>
+            </ItemsControl.Resources>
+        </ItemsControl>
+    </Grid>
+</Page>

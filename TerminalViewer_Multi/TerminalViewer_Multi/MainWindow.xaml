@@ -1,0 +1,97 @@
+﻿<Window xmlns:my="http://schemas.microsoft.com/winfx/2006/xaml/presentation/ribbon"  x:Class="TerminalViewer.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="clr-namespace:TerminalViewer"
+        
+        Title="MainWindow" Height="700" Width="1000" Loaded="OnLoad" Closed="OnClose">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="5" />
+            <ColumnDefinition Width="200" />
+        </Grid.ColumnDefinitions>
+        <my:Ribbon Grid.ColumnSpan="3">
+            <my:Ribbon.QuickAccessToolBar>
+                <my:RibbonQuickAccessToolBar>
+                    <my:RibbonButton x:Name="Save" SmallImageSource="Images/save.png" />
+                </my:RibbonQuickAccessToolBar>
+            </my:Ribbon.QuickAccessToolBar>
+            
+            <my:Ribbon.ApplicationMenu>
+                <my:RibbonApplicationMenu KeyTip="F">
+                    <my:RibbonApplicationMenuItem Header="Options" ImageSource="Images\options.png" />
+                    <my:RibbonApplicationMenuItem Header="Exit" ImageSource="Images\quit.png" />
+                </my:RibbonApplicationMenu>
+            </my:Ribbon.ApplicationMenu>
+            
+            <my:RibbonTab Header="Home" KeyTip="H" >
+                <my:RibbonGroup Header="Terminal">
+                    <ComboBox x:Name="Combo_Terminal" SelectedIndex="0" SelectedValue="{Binding SelectedTerminal}" SelectionChanged="Combo_Terminal_SelectionChanged">
+                        <ComboBoxItem Content="TDF"/>
+                        <ComboBoxItem Content="TNORD"/>
+                    </ComboBox>
+                </my:RibbonGroup>
+                <my:RibbonGroup Header="GPS">
+                    <my:RibbonToggleButton Content="Activer GPS" />
+                    <!-- Ajouter points GPS -->
+                    <!-- Point GPS tracking -->
+                </my:RibbonGroup>
+                <my:RibbonGroup Header="Mouvements">
+                    
+                    <!-- Filtres -->
+                    <my:RibbonButton x:Name="Button_LoadMoves" SmallImageSource="Images/directions.png" Label="Charger Mouvements" Click="Button_LoadMoves_Click" />
+                </my:RibbonGroup>
+                <my:RibbonGroup Header="Map">
+                    <my:RibbonToggleButton x:Name="Button_Pointing" Label="Pointage" Checked="Button_Pointing_Checked"  />
+                </my:RibbonGroup>
+            </my:RibbonTab>
+
+            <my:RibbonTab Header="Mapping" KeyTip="H" >
+                <my:RibbonGroup Header="Points">
+                    <my:RibbonButton x:Name="Button_AddPoint" SmallImageSource="Images\point.png" Label="Ajouter un point" Click="Button_AddPoint_Click" />
+                </my:RibbonGroup>
+                <my:RibbonGroup Header="Édition">
+                    
+                </my:RibbonGroup>
+                <my:RibbonGroup Header="Apparence">
+                    
+                </my:RibbonGroup>
+            </my:RibbonTab>
+
+        </my:Ribbon>
+<!--
+        <ToolBarTray Panel.ZIndex="3" DockPanel.Dock="Top">
+            <ToolBar>
+                <Button Click="btn_Save_Click">
+                    <Image Source=""/> 
+                </Button>
+                <ToggleButton Name="btn_EnableGPS" Unchecked="gpsButtonDisable" Checked="gpsButtonEnable">
+                    <Image Source="C:\Users\a lods\Documents\Graphiques\GPS.png" />
+                </ToggleButton>
+                <Label Content="Terminal :"/>
+                <ComboBox Name="selectTerminal" Width="100" SelectionChanged="TerminalChanged" SelectedValuePath="Content">
+                    <ComboBoxItem Name="terminalTDF" IsSelected="True">TDF</ComboBoxItem>
+                    <ComboBoxItem Name="terminalTNORD">TNORD</ComboBoxItem>
+                </ComboBox>
+            </ToolBar>
+        </ToolBarTray>
+-->
+        <Frame Panel.ZIndex="0" Grid.Row="1" x:Name="MapContainer" Margin="0"  Width="Auto" SizeChanged="OnResize"/>
+        <GridSplitter Grid.Row="1" Grid.Column="1" Width="5" HorizontalAlignment="Stretch" />
+        <StackPanel Grid.Row="1" Grid.Column="2">
+            <DataGrid SelectionMode="Single" IsReadOnly="True" SelectedItem="{Binding SelectedItem}" local:Commands.DataGridDoubleClickCommand="{Binding DataGridDoubleClick}" ItemsSource="{Binding model.gpsPoints}"  Name="cavsGrid" AutoGenerateColumns="False" IsSynchronizedWithCurrentItem="True" MouseDoubleClick="OnGPSDoubleClick">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Nom" Binding="{Binding Name}" />
+                    <DataGridTextColumn Header="Port COM" Binding="{Binding PortName}"/>
+                    <DataGridCheckBoxColumn Header="Connecté" IsReadOnly="True" Binding="{Binding Connected}"/>
+                </DataGrid.Columns>
+            </DataGrid>
+        </StackPanel>
+        <Label Height="28" x:Name="lbl_Info" VerticalAlignment="Top" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Content="{Binding targetBlock.Name}" Panel.ZIndex="50" />
+        
+    </Grid>
+</Window>
